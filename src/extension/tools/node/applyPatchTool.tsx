@@ -334,12 +334,15 @@ export class ApplyPatchTool implements ICopilotTool<IApplyPatchToolParams> {
 				const existingDiagnostics = this.languageDiagnosticsService.getDiagnostics(uri);
 
 				// Initialize edit survival tracking for text documents
-				const document = notebookUri ?
-					await this.workspaceService.openNotebookDocumentAndSnapshot(notebookUri, this.alternativeNotebookContent.getFormat(this._promptContext?.request?.model)) :
-					await this.workspaceService.openTextDocumentAndSnapshot(uri);
-				if (document instanceof TextDocumentSnapshot) {
-					const tracker = this._editSurvivalTrackerService.initialize(document.document);
-					editSurvivalTrackers.set(uri, tracker);
+				const existsOnDisk = await this.fileSystemService.stat(uri).then(() => true, () => false);
+				if (existsOnDisk) {
+					const document = notebookUri ?
+						await this.workspaceService.openNotebookDocumentAndSnapshot(notebookUri, this.alternativeNotebookContent.getFormat(this._promptContext?.request?.model)) :
+						await this.workspaceService.openTextDocumentAndSnapshot(uri);
+					if (document instanceof TextDocumentSnapshot) {
+						const tracker = this._editSurvivalTrackerService.initialize(document.document);
+						editSurvivalTrackers.set(uri, tracker);
+					}
 				}
 
 				if (notebookUri) {
