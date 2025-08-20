@@ -98,6 +98,14 @@ export class OpenAIEndpoint extends ChatEndpoint {
 		}
 
 		if (body) {
+			if (body.tools) {
+				body.tools = body.tools.map(tool => {
+					if (tool.function && tool.function.parameters === undefined) {
+						tool.function.parameters = { type: "object", properties: {} };
+					}
+					return tool;
+				});
+			}
 			if (this._modelInfo.capabilities.supports.thinking) {
 				delete body.temperature;
 				body['max_completion_tokens'] = body.max_tokens;
